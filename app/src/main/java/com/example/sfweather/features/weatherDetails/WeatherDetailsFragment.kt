@@ -29,7 +29,6 @@ class WeatherDetailsFragment : Fragment(), View.OnClickListener, SearchView.OnQu
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view:View = inflater.inflate(R.layout.fragment_weather_detail, container, false)
 
-        //this.presenter.attachView(this)
         this.viewModel = ViewModelProviders.of(this).get(WeatherDetailsViewModel::class.java)
 
         this.viewModel.isLoading.observe(this, Observer {
@@ -111,12 +110,12 @@ class WeatherDetailsFragment : Fragment(), View.OnClickListener, SearchView.OnQu
     }
     //endregion
 
-    //region ui update methods
-    fun setIsLoading(bool: Boolean) {
+    //region ui methods
+    private fun setIsLoading(bool: Boolean) {
         this.progressBar.visibility = if (bool) ProgressBar.VISIBLE else ProgressBar.INVISIBLE
     }
 
-     fun updateView(data: WeatherDetailsData) {
+    private  fun updateView(data: WeatherDetailsData) {
         val displayTemp = String.format("%.1f", WeatherUtils.kelvinToCelsius(data.temperature)) + "°"
 
         this.cityNameLabel.text = data.cityName
@@ -124,7 +123,7 @@ class WeatherDetailsFragment : Fragment(), View.OnClickListener, SearchView.OnQu
         this.weatherLabel.text = data.weatherDesc
     }
 
-    fun showErrorMessage(errorMessage: String) {
+    private fun showErrorMessage(errorMessage: String) {
         Snackbar.make(this.view!!, errorMessage, Snackbar.LENGTH_SHORT).show();
     }
     //endregion

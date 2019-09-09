@@ -8,11 +8,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sfweather.R
-import com.example.sfweather.features.weatherHistory.WeatherHistoryContract
+import com.example.sfweather.features.weatherHistory.WeatherHistoryViewModel
 import kotlinx.android.synthetic.main.weather_history_item.view.*
 
 class WeatherHistoryRecycleViewAdapter(
-    private val presenter: WeatherHistoryContract.Presenter
+    private val viewModel: WeatherHistoryViewModel
 ) : RecyclerView.Adapter<WeatherHistoryRecycleViewAdapter.WeatherHistoryViewHolder>() {
     private val onClickListener: View.OnClickListener
     private val onDeleteListener: View.OnClickListener
@@ -21,13 +21,13 @@ class WeatherHistoryRecycleViewAdapter(
         onClickListener = View.OnClickListener { v ->
             val position = v.tag as Int
 
-            this.presenter.selectSearchHistoryAtPosition(position)
+            this.viewModel.selectSearchHistoryAtPosition(position)
         }
 
         onDeleteListener = View.OnClickListener { v ->
             val position = v.tag as Int
 
-            this.presenter.removeSearchHistoryAtPosition(position)
+            this.viewModel.removeSearchHistoryAtPosition(position)
         }
     }
 
@@ -38,15 +38,15 @@ class WeatherHistoryRecycleViewAdapter(
         )
     }
 
-    override fun getItemCount() = this.presenter.getSearchHistoryCount()
+    override fun getItemCount() = this.viewModel.getSearchHistoryCount()
 
     override fun onBindViewHolder(holder: WeatherHistoryViewHolder, position: Int) {
-        val searchHistory = this.presenter.getSearchHistoryAtPosition(position)
+        val searchHistory = this.viewModel.getSearchHistoryAtPosition(position)
 
         if (searchHistory != null) {
             holder.cityNameLabel.text = searchHistory.cityName
             holder.dateLabel.text = DateFormat.format("yyyy-MM-dd hh:mm:ss", searchHistory.timestamp * 1000L).toString()
-            holder.deleteBtn.visibility = if (this.presenter.isEdit) View.VISIBLE else View.GONE
+            holder.deleteBtn.visibility = if (this.viewModel.isEdit.value!!) View.VISIBLE else View.GONE
 
             with(holder.itemView) {
                 tag = position

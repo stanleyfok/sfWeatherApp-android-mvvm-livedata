@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import android.content.Intent
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.example.sfweather.MainActivity
 import com.example.sfweather.R
@@ -17,17 +19,29 @@ import com.example.sfweather.utils.SwipeToDeleteCallback
 import kotlinx.android.synthetic.main.fragment_weather_history.*
 import kotlinx.android.synthetic.main.fragment_weather_history.view.*
 
-class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnClickListener {
-    private var presenter: WeatherHistoryContract.Presenter = WeatherHistoryPresenter()
+class WeatherHistoryFragment : Fragment(), View.OnClickListener {
+    private lateinit var viewModel: WeatherHistoryViewModel
     private lateinit var recycleViewAdapter: WeatherHistoryRecycleViewAdapter
 
     //region life cycle
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view:View = inflater.inflate(R.layout.fragment_weather_history, container, false)
 
-        this.presenter.attachView(this)
-        this.recycleViewAdapter = WeatherHistoryRecycleViewAdapter(this.presenter)
+        this.viewModel = ViewModelProviders.of(this).get(WeatherHistoryViewModel::class.java)
 
+        this.viewModel.searchHistories.observe(this, Observer {
+            this.reloadRecyclerView(it)
+        })
+
+        this.viewModel.selectedSearchHistory.observe(this, Observer {
+            this.onSelectSearchHistory(it)
+        })
+
+        this.viewModel.isEdit.observe(this, Observer {
+            this.updateEditMode(it)
+        })
+
+        this.recycleViewAdapter = WeatherHistoryRecycleViewAdapter(this.viewModel)
         this.setupRecyclerView(view)
 
         return view
@@ -38,13 +52,7 @@ class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnC
 
         this.editButton.setOnClickListener(this)
 
-        presenter.onViewCreated()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-
-        this.presenter.detachView()
+        this.viewModel.loadSearchHistories()
     }
     //endregion
 
@@ -57,7 +65,7 @@ class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnC
 
         val swipeHandler = object : SwipeToDeleteCallback(activity!!.applicationContext) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                presenter.removeSearchHistoryAtPosition(viewHolder.adapterPosition)
+                viewModel.removeSearchHistoryAtPosition(viewHolder.adapterPosition)
             }
         }
 
@@ -66,11 +74,11 @@ class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnC
     }
     //endregion
 
-    //region interface method
-    override fun reloadRecyclerView() {
+    //region ui methods
+    private fun reloadRecyclerView(searchHistories: List<SearchHistory>) {
         recycleViewAdapter.notifyDataSetChanged()
 
-        val count = this.presenter.getSearchHistoryCount()
+        val count = searchHistories.count()
 
         if (count == 0) {
             this.emptyResultText.visibility = View.VISIBLE
@@ -81,7 +89,7 @@ class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnC
         }
     }
 
-    override fun onSelectSearchHistory(searchHistory: SearchHistory) {
+    private fun onSelectSearchHistory(searchHistory: SearchHistory) {
         targetFragment?.let {
             val intent = Intent(context, WeatherHistoryFragment::class.java)
             intent.putExtra("cityId", searchHistory.cityId);
@@ -91,21 +99,23 @@ class WeatherHistoryFragment : Fragment(), WeatherHistoryContract.View, View.OnC
 
         (activity as MainActivity).popStack()
     }
+
+    private fun updateEditMode(bool: Boolean) {
+        if (bool) {
+            this.editButton.text = resources.getString(R.string.WEATHER_HISTORY_TOOLBAR_BUTTON_DONE)
+        } else {
+            this.editButton.text = resources.getString(R.string.WEATHER_HISTORY_TOOLBAR_BUTTON_EDIT)
+        }
+
+        recycleViewAdapter.notifyDataSetChanged()
+    }
     //endregion
 
     //region click listener
     override fun onClick(view: View) {
         when (view.id) {
             R.id.editButton -> {
-                this.presenter.isEdit = !this.presenter.isEdit
-
-                if (this.presenter.isEdit) {
-                    this.editButton.text = resources.getString(R.string.WEATHER_HISTORY_TOOLBAR_BUTTON_DONE)
-                } else {
-                    this.editButton.text = resources.getString(R.string.WEATHER_HISTORY_TOOLBAR_BUTTON_EDIT)
-                }
-
-                this.reloadRecyclerView()
+                this.viewModel.toggleIsEdit()
             }
         }
     }
