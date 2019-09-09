@@ -41,7 +41,18 @@ class WeatherHistoryFragment : Fragment(), View.OnClickListener {
             this.updateEditMode(it)
         })
 
-        this.recycleViewAdapter = WeatherHistoryRecycleViewAdapter(this.viewModel)
+        this.recycleViewAdapter = WeatherHistoryRecycleViewAdapter(
+            onClickListener = View.OnClickListener { v ->
+                val position = v.tag as Int
+
+                this.viewModel.selectSearchHistoryAtPosition(position)
+            },
+            onDeleteListener = View.OnClickListener { v ->
+                val position = v.tag as Int
+
+                this.viewModel.removeSearchHistoryAtPosition(position)
+            }
+        )
         this.setupRecyclerView(view)
 
         return view
@@ -76,6 +87,7 @@ class WeatherHistoryFragment : Fragment(), View.OnClickListener {
 
     //region ui methods
     private fun reloadRecyclerView(searchHistories: List<SearchHistory>) {
+        recycleViewAdapter.searchHistories = searchHistories
         recycleViewAdapter.notifyDataSetChanged()
 
         val count = searchHistories.count()
@@ -107,6 +119,7 @@ class WeatherHistoryFragment : Fragment(), View.OnClickListener {
             this.editButton.text = resources.getString(R.string.WEATHER_HISTORY_TOOLBAR_BUTTON_EDIT)
         }
 
+        recycleViewAdapter.isEdit = bool
         recycleViewAdapter.notifyDataSetChanged()
     }
     //endregion

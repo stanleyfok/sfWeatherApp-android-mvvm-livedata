@@ -32,14 +32,6 @@ class WeatherHistoryViewModel: ViewModel(), KoinComponent {
         return null
     }
 
-    fun getSearchHistoryCount():Int {
-        this.searchHistories.value?.let {
-            return it.size
-        }
-
-        return 0
-    }
-
     fun selectSearchHistoryAtPosition(position: Int) {
         val searchHistory = this.getSearchHistoryAtPosition(position)
 

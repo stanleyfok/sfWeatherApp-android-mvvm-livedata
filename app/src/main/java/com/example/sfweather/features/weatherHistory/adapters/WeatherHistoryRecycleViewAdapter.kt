@@ -8,28 +8,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.sfweather.R
-import com.example.sfweather.features.weatherHistory.WeatherHistoryViewModel
+import com.example.sfweather.models.SearchHistory
 import kotlinx.android.synthetic.main.weather_history_item.view.*
 
 class WeatherHistoryRecycleViewAdapter(
-    private val viewModel: WeatherHistoryViewModel
-) : RecyclerView.Adapter<WeatherHistoryRecycleViewAdapter.WeatherHistoryViewHolder>() {
-    private val onClickListener: View.OnClickListener
+    private val onClickListener: View.OnClickListener,
     private val onDeleteListener: View.OnClickListener
+) : RecyclerView.Adapter<WeatherHistoryRecycleViewAdapter.WeatherHistoryViewHolder>() {
 
-    init {
-        onClickListener = View.OnClickListener { v ->
-            val position = v.tag as Int
-
-            this.viewModel.selectSearchHistoryAtPosition(position)
-        }
-
-        onDeleteListener = View.OnClickListener { v ->
-            val position = v.tag as Int
-
-            this.viewModel.removeSearchHistoryAtPosition(position)
-        }
-    }
+    var isEdit:Boolean = false
+    var searchHistories:List<SearchHistory>? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherHistoryViewHolder {
         return WeatherHistoryViewHolder(
@@ -38,15 +26,21 @@ class WeatherHistoryRecycleViewAdapter(
         )
     }
 
-    override fun getItemCount() = this.viewModel.getSearchHistoryCount()
+    override fun getItemCount():Int {
+        searchHistories?.let {
+            return it.count()
+        }
+
+        return 0
+    }
 
     override fun onBindViewHolder(holder: WeatherHistoryViewHolder, position: Int) {
-        val searchHistory = this.viewModel.getSearchHistoryAtPosition(position)
+        val searchHistory = searchHistories?.get(position)
 
         if (searchHistory != null) {
             holder.cityNameLabel.text = searchHistory.cityName
             holder.dateLabel.text = DateFormat.format("yyyy-MM-dd hh:mm:ss", searchHistory.timestamp * 1000L).toString()
-            holder.deleteBtn.visibility = if (this.viewModel.isEdit.value!!) View.VISIBLE else View.GONE
+            holder.deleteBtn.visibility = if (isEdit) View.VISIBLE else View.GONE
 
             with(holder.itemView) {
                 tag = position
