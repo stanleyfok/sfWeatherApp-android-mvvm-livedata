@@ -4,7 +4,7 @@ A simple Android weather app using [Openweather API](https://openweathermap.org/
 
 ## Technologies
 
-- **MVP** Architecture
+- **MVVM** Architecture with **LiveData**
 - **Kotlin** 100%
 - **Koin** for dependency injection
 - **Coroutine** for concurrency and flow control
